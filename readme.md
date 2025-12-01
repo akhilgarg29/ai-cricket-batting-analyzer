@@ -73,7 +73,7 @@ uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 
 ## Project Structure
 
-'''cricket-batting-analyzer/
+```cricket-batting-analyzer/
 ├── backend/
 │ ├── pose_analysis/
 │ │ ├── init.py
@@ -90,7 +90,7 @@ uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 ├── app.py # Main FastAPI application
 ├── requirements.txt
 ├── .gitignore
-└── README.md'''
+└── README.md```
 
 
 ## API Endpoints
