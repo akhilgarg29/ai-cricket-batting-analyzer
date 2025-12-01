@@ -1,0 +1,16 @@
+# Core Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+
+# Computer Vision
+opencv-python==4.9.0.80
+mediapipe==0.10.21
+ultralytics==8.1.0
+
+# Data Processing - UPDATED FOR PYTHON 3.12
+numpy>=1.26.0
+Pillow>=10.2.0
+
+# Utilities
+aiofiles==23.2.1

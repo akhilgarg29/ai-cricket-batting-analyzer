@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏏 AI Cricket Batting Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            text-align: center;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .upload-section {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            margin: 20px 0;
+            display: inline-block;
+        }
+        
+        input[type="file"] {
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 2px dashed rgba(255,255,255,0.5);
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        input[type="file"]:hover {
+            background: white;
+            border-color: #667eea;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            border: none;
+            padding: 14px 35px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        }
+        
+        button:disabled {
+            background: #999;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .results {
+            margin-top: 20px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .score-display {
+            text-align: center;
+            padding: 30px;
+            margin: 20px 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .score-number {
+            font-size: 4em;
+            font-weight: bold;
+            margin: 10px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .score-excellent { color: #00ff88; }
+        .score-good { color: #ffd700; }
+        .score-average { color: #ffa500; }
+        .score-needs-improvement { color: #ff6b6b; }
+        
+        .grade-badge {
+            display: inline-block;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .issue-card {
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-left: 4px solid;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .issue-card:hover {
+            transform: translateX(5px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .severity-high { border-color: #ff6b6b; }
+        .severity-medium { border-color: #ffa500; }
+        .severity-low { border-color: #ffd700; }
+        .severity-good { border-color: #00ff88; }
+        
+        .issue-type {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+        
+        .issue-recommendation {
+            font-style: italic;
+            opacity: 0.9;
+            margin-top: 8px;
+            padding-left: 15px;
+            border-left: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .frequency-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+        
+        video {
+            width: 100%;
+            max-width: 800px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            margin: 20px auto;
+            display: block;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .feature-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+        
+        .stats-row {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .stat-box {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin: 10px;
+            min-width: 150px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏏 AI Cricket Batting Analyzer</h1>
+        <p class="subtitle">Upload your cricket batting videos for professional AI-powered analysis with detailed performance scoring</p>
+        
+        <div class="upload-section">
+            <h3>📤 Upload Cricket Video</h3>
+            <p>Supported formats: MP4, MOV, AVI | Max size: 100MB</p>
+            
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="file-input-wrapper">
+                    <input type="file" id="videoFile" name="file" accept="video/*" required>
+                </div>
+                <br>
+                <button type="submit" id="submitBtn">
+                    🔍 Analyze Batting Technique
+                </button>
+            </form>
+            
+            <div id="loading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p><strong>🔄 Processing video...</strong></p>
+                <p>Analyzing pose, detecting issues, and generating recommendations</p>
+                <p style="font-size: 0.9em; opacity: 0.8;">(This may take 1-3 minutes depending on video length)</p>
+            </div>
+            
+            <div id="results" class="results">
+                <h3>📊 Analysis Complete!</h3>
+                
+                <div id="scoreDisplay"></div>
+                <div id="statsDisplay"></div>
+                <div id="resultContent"></div>
+                <div id="videoResult"></div>
+            </div>
+        </div>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h4>Advanced Pose Analysis</h4>
+                <p>MediaPipe-powered AI detects 33 body landmarks for precise batting form analysis</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">📈</div>
+                <h4>Performance Scoring</h4>
+                <p>Get a comprehensive 0-100 score based on technique, stance, and body alignment</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🎥</div>
+                <h4>Annotated Video</h4>
+                <p>Watch your video with real-time overlays highlighting technical issues and angles</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🏆</div>
+                <h4>Expert Recommendations</h4>
+                <p>Receive specific, actionable coaching tips to improve your batting technique</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('videoFile');
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            const resultContent = document.getElementById('resultContent');
+            const videoResult = document.getElementById('videoResult');
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            const statsDisplay = document.getElementById('statsDisplay');
+            
+            if (!fileInput.files[0]) {
+                alert('⚠️ Please select a video file first!');
+                return;
+            }
+            
+            // Validate file size
+            const fileSizeMB = fileInput.files[0].size / (1024 * 1024);
+            if (fileSizeMB > 100) {
+                alert(`⚠️ File too large (${fileSizeMB.toFixed(1)}MB). Maximum size is 100MB.`);
+                return;
+            }
+            
+            // Show loading, hide results
+            loading.style.display = 'block';
+            results.style.display = 'none';
+            submitBtn.disabled = true;
+            
+            // Create form data
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                // Hide loading
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+                
+                if (result.status === 'success') {
+                    // Display performance score
+                    const score = result.performance_score || 0;
+                    const grade = result.performance_grade || 'Unknown';
+                    
+                    let scoreClass = 'score-needs-improvement';
+                    if (score >= 85) scoreClass = 'score-excellent';
+                    else if (score >= 70) scoreClass = 'score-good';
+                    else if (score >= 55) scoreClass = 'score-average';
+                    
+                    scoreDisplay.innerHTML = `
+                        <div class="score-display">
+                            <h3>Your Performance Score</h3>
+                            <div class="score-number ${scoreClass}">${score}/100</div>
+                            <span class="grade-badge ${scoreClass}">${grade}</span>
+                        </div>
+                    `;
+                    
+                    // Display statistics
+                    statsDisplay.innerHTML = `
+                        <div class="stats-row">
+                            <div class="stat-box">
+                                <div class="stat-value">${result.total_issues_found || 0}</div>
+                                <div class="stat-label">Issues Found</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value">${result.frames_analyzed || 0}</div>
+                                <div class="stat-label">Frames Analyzed</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Display analysis results
+                    let analysisHtml = '<h4 style="margin-top: 20px;">🎯 Detailed Technical Analysis:</h4>';
+                    
+                    if (result.analysis_results && result.analysis_results.length > 0) {
+                        result.analysis_results.forEach(issue => {
+                            const severityClass = `severity-${issue.severity.toLowerCase().replace(' ', '-')}`;
+                            const frequencyBadge = issue.frequency ? 
+                                `<span class="frequency-badge">Detected ${issue.frequency}x</span>` : '';
+                            
+                            analysisHtml += `
+                                <div class="issue-card ${severityClass}">
+                                    <div class="issue-type">
+                                        ${getSeverityIcon(issue.severity)} ${issue.type}
+                                        ${frequencyBadge}
+                                    </div>
+                                    <div>${issue.description}</div>
+                                    <div class="issue-recommendation">
+                                        💡 ${issue.recommendation}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                    
+                    resultContent.innerHTML = analysisHtml;
+                    
+                    // Display processed video
+                    if (result.output_video) {
+                        videoResult.innerHTML = `
+                            <h4 style="margin-top: 30px;">🎥 Your Analyzed Video:</h4>
+                            <p style="opacity: 0.9; margin: 10px 0;">Watch the annotated video to see real-time analysis overlays</p>
+                            <video controls autoplay muted>
+                                <source src="${result.output_video}" type="video/mp4">
+                                Your browser does not support video playback.
+                            </video>
+                            <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">
+                                💾 Right-click the video to download and review at your own pace
+                            </p>
+                        `;
+                    }
+                    
+                    results.style.display = 'block';
+                    results.scrollIntoView({ behavior: 'smooth' });
+                    
+                } else {
+                    scoreDisplay.innerHTML = '';
+                    statsDisplay.innerHTML = '';
+                    resultContent.innerHTML = `
+                        <div style="padding: 20px; background: rgba(255,0,0,0.2); border-radius: 10px;">
+                            <p style="color: #ff6b6b; font-size: 1.2em;">❌ Error: ${result.message}</p>
+                            <p style="margin-top: 10px;">${result.detail || 'Please try again with a different video.'}</p>
+                        </div>
+                    `;
+                    videoResult.innerHTML = '';
+                    results.style.display = 'block';
+                }
+                
+            } catch (error) {
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+                
+                scoreDisplay.innerHTML = '';
+                statsDisplay.innerHTML = '';
+                resultContent.innerHTML = `
+                    <div style="padding: 20px; background: rgba(255,0,0,0.2); border-radius: 10px;">
+                        <p style="color: #ff6b6b; font-size: 1.2em;">❌ Network Error</p>
+                        <p style="margin-top: 10px;">${error.message}</p>
+                        <p style="margin-top: 10px; font-size: 0.9em;">Please check your connection and try again.</p>
+                    </div>
+                `;
+                videoResult.innerHTML = '';
+                results.style.display = 'block';
+            }
+        });
+        
+        function getSeverityIcon(severity) {
+            const icons = {
+                'High': '🔴',
+                'Medium': '🟡',
+                'Low': '🟢',
+                'Good': '✅'
+            };
+            return icons[severity] || '⚪';
+        }
+    </script>
+</body>
+</html>
